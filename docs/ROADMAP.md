@@ -55,17 +55,46 @@ Acceptance criteria:
 - [x] Do not ring indefinitely.
 - [x] Notification logic is independently testable.
 
-### [ ] US-V0-05: V0 verification
+### [x] US-V0-05: V0 verification
 
 As a maintainer, I want deterministic tests and a runnable demo so that V0 can be tagged confidently.
 
 Acceptance criteria:
 
-- [ ] Unit tests cover duration parsing and time resolution.
-- [ ] CLI tests cover help, version, valid input, and invalid input.
-- [ ] Tests do not rely on arbitrary long sleeps.
-- [ ] Quality checks pass.
-- [ ] End-to-end command works: `amka set --in 5s --label "Better demo"`
+- [x] Unit tests cover duration parsing and time resolution.
+- [x] CLI tests cover help, version, valid input, and invalid input.
+- [x] Tests do not rely on arbitrary long sleeps.
+- [x] Quality checks pass.
+- [x] End-to-end command works: `amka set --in 5s --label "Better demo"`
+
+### [x] US-V0-06: CLI conventions and scripting ergonomics
+
+As a terminal user, I want predictable output and exit behavior so that Amka works naturally in shell scripts and command pipelines.
+
+Acceptance criteria:
+
+- [x] `amka --version` prints the installed version and exits successfully.
+- [x] Successful command output is written to stdout.
+- [x] Expected errors are written to stderr.
+- [x] Invalid schedules exit with code 1.
+- [x] Command-line usage errors exit with code 2.
+- [x] Interrupted alarms exit with code 130.
+- [x] `--quiet` suppresses scheduling confirmation but preserves the final alarm notification.
+- [x] `--no-bell` prevents terminal bell characters.
+- [x] CLI behavior is documented in `docs/CLI.md`.
+
+### [x] US-V0-07: Demo-ready notification and design record
+
+As a reviewer, I want a visually clear alarm and concise engineering documentation so that I can understand and evaluate the product quickly.
+
+Acceptance criteria:
+
+- [x] Alarm output is visually prominent without relying on audio.
+- [x] Plain output remains readable without ANSI support.
+- [x] Compatible terminals receive restrained visual emphasis.
+- [x] `NO_COLOR` and `TERM=dumb` are respected.
+- [x] Design decisions and tradeoffs are documented.
+- [x] A five-minute demo guide is available.
 
 ## V1 — Persistent Multi-Alarm CLI
 

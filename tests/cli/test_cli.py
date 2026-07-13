@@ -31,12 +31,23 @@ def test_version_prints_package_version() -> None:
     assert result.output == "amka 0.1.0\n"
 
 
+def test_version_option_prints_package_version() -> None:
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.output == "amka 0.1.0\n"
+
+
 def test_set_relative_alarm_succeeds_without_real_waiting(monkeypatch) -> None:
     waits: list[object] = []
     notifications: list[str | None] = []
 
     monkeypatch.setattr(amka.cli, "wait_until", waits.append)
-    monkeypatch.setattr(amka.cli, "notify_terminal", notifications.append)
+    monkeypatch.setattr(
+        amka.cli,
+        "notify_terminal",
+        lambda label, bell_count=3: notifications.append(label),
+    )
 
     result = runner.invoke(app, ["set", "--in", "5s"])
 
@@ -51,7 +62,11 @@ def test_set_relative_alarm_includes_label_in_confirmation_and_notification(monk
     notifications: list[str | None] = []
 
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", notifications.append)
+    monkeypatch.setattr(
+        amka.cli,
+        "notify_terminal",
+        lambda label, bell_count=3: notifications.append(label),
+    )
 
     result = runner.invoke(app, ["set", "--in", "5s", "--label", "Better demo"])
 
@@ -67,8 +82,28 @@ def test_invalid_duration_exits_non_zero_without_traceback(monkeypatch) -> None:
     result = runner.invoke(app, ["set", "--in", "bad"])
 
     assert result.exit_code != 0
-    assert "Error:" in result.output
+    assert "Error:" in result.stderr
     assert "Traceback" not in result.output
+    assert "Traceback" not in result.stderr
+
+
+def test_invalid_duration_exits_one_and_uses_stderr(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
+
+    result = runner.invoke(app, ["set", "--in", "bad"])
+
+    assert result.exit_code == 1
+    assert "Error:" in result.stderr
+    assert "Error:" not in result.stdout
+
+
+def test_unknown_option_exits_two_without_traceback() -> None:
+    result = runner.invoke(app, ["set", "--unknown"])
+
+    assert result.exit_code == 2
+    assert "Traceback" not in result.output
+    assert "Traceback" not in result.stderr
 
 
 def test_keyboard_interrupt_cancels_alarm(monkeypatch) -> None:
@@ -76,12 +111,12 @@ def test_keyboard_interrupt_cancels_alarm(monkeypatch) -> None:
         raise KeyboardInterrupt
 
     monkeypatch.setattr(amka.cli, "wait_until", interrupt)
-    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
 
     result = runner.invoke(app, ["set", "--in", "5s"])
 
     assert result.exit_code == 130
-    assert "Alarm cancelled." in result.output
+    assert "Alarm cancelled." in result.stderr
 
 
 def test_set_absolute_alarm_succeeds_without_real_waiting(monkeypatch) -> None:
@@ -90,7 +125,11 @@ def test_set_absolute_alarm_succeeds_without_real_waiting(monkeypatch) -> None:
 
     monkeypatch.setattr(amka.cli, "datetime", FixedDateTime)
     monkeypatch.setattr(amka.cli, "wait_until", waits.append)
-    monkeypatch.setattr(amka.cli, "notify_terminal", notifications.append)
+    monkeypatch.setattr(
+        amka.cli,
+        "notify_terminal",
+        lambda label, bell_count=3: notifications.append(label),
+    )
 
     result = runner.invoke(app, ["set", "--at", "07:30"])
 
@@ -103,7 +142,7 @@ def test_set_absolute_alarm_succeeds_without_real_waiting(monkeypatch) -> None:
 def test_absolute_confirmation_contains_resolved_date_and_time(monkeypatch) -> None:
     monkeypatch.setattr(amka.cli, "datetime", FixedDateTime)
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
 
     result = runner.invoke(app, ["set", "--at", "07:30"])
 
@@ -117,7 +156,11 @@ def test_absolute_label_reaches_confirmation_and_notification(monkeypatch) -> No
 
     monkeypatch.setattr(amka.cli, "datetime", FixedDateTime)
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", notifications.append)
+    monkeypatch.setattr(
+        amka.cli,
+        "notify_terminal",
+        lambda label, bell_count=3: notifications.append(label),
+    )
 
     result = runner.invoke(app, ["set", "--at", "07:30", "--label", "Wake up"])
 
@@ -128,31 +171,78 @@ def test_absolute_label_reaches_confirmation_and_notification(monkeypatch) -> No
 
 def test_both_in_and_at_fail(monkeypatch) -> None:
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
 
     result = runner.invoke(app, ["set", "--in", "5s", "--at", "07:30"])
 
     assert result.exit_code != 0
-    assert "Use only one of --in or --at." in result.output
+    assert "Use only one of --in or --at." in result.stderr
 
 
 def test_neither_in_nor_at_fails(monkeypatch) -> None:
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
 
     result = runner.invoke(app, ["set"])
 
     assert result.exit_code != 0
-    assert "Provide exactly one of --in or --at." in result.output
+    assert "Provide exactly one of --in or --at." in result.stderr
 
 
 def test_invalid_at_exits_non_zero_without_traceback(monkeypatch) -> None:
     monkeypatch.setattr(amka.cli, "datetime", FixedDateTime)
     monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
-    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label: None)
+    monkeypatch.setattr(amka.cli, "notify_terminal", lambda _label, bell_count=3: None)
 
     result = runner.invoke(app, ["set", "--at", "7:30"])
 
     assert result.exit_code != 0
-    assert "Error:" in result.output
+    assert "Error:" in result.stderr
     assert "Traceback" not in result.output
+    assert "Traceback" not in result.stderr
+
+
+def test_quiet_suppresses_scheduling_confirmation(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+
+    result = runner.invoke(app, ["set", "--in", "5s", "--quiet"])
+
+    assert result.exit_code == 0
+    assert "Alarm scheduled for" not in result.output
+
+
+def test_quiet_still_emits_alarm(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+
+    result = runner.invoke(app, ["set", "--in", "5s", "--quiet"])
+
+    assert result.exit_code == 0
+    assert "ALARM" in result.output
+
+
+def test_quiet_still_includes_final_label(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+
+    result = runner.invoke(app, ["set", "--in", "5s", "--label", "Quiet demo", "--quiet"])
+
+    assert result.exit_code == 0
+    assert "Label: Quiet demo" in result.output
+
+
+def test_no_bell_emits_zero_bell_characters(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+
+    result = runner.invoke(app, ["set", "--in", "5s", "--no-bell"])
+
+    assert result.exit_code == 0
+    assert "ALARM" in result.output
+    assert result.output.count("\a") == 0
+
+
+def test_default_behavior_emits_three_bell_characters(monkeypatch) -> None:
+    monkeypatch.setattr(amka.cli, "wait_until", lambda _target: None)
+
+    result = runner.invoke(app, ["set", "--in", "5s"])
+
+    assert result.exit_code == 0
+    assert result.output.count("\a") == 3

@@ -45,8 +45,7 @@ branch = true
 source = ["amka"]
 
 [tool.coverage.report]
-# Raise this threshold after V0 behavior exists.
-fail_under = 0
+fail_under = 85
 
 [tool.ruff]
 target-version = "py312"

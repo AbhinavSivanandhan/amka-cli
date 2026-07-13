@@ -12,14 +12,24 @@ app = typer.Typer(
     name="amka",
     help="Create and manage local alarms.",
     no_args_is_help=True,
+    invoke_without_command=True,
     add_completion=False,
     pretty_exceptions_enable=False,
 )
 
 
 @app.callback()
-def main() -> None:
+def main(
+    version_: bool = typer.Option(
+        False,
+        "--version",
+        help="Show the installed Amka version and exit.",
+    ),
+) -> None:
     """Create and manage local alarms."""
+    if version_:
+        typer.echo(f"amka {__version__}")
+        raise typer.Exit(0)
 
 
 @app.command()
@@ -33,6 +43,8 @@ def set_alarm(
     in_: str | None = typer.Option(None, "--in", help="Relative duration, such as 5s or 1h30m."),
     at: str | None = typer.Option(None, "--at", help="Local time, such as 07:30."),
     label: str | None = typer.Option(None, "--label"),
+    quiet: bool = typer.Option(False, "--quiet", help="Suppress scheduling confirmation."),
+    no_bell: bool = typer.Option(False, "--no-bell", help="Disable terminal bell characters."),
 ) -> None:
     """Set a foreground alarm."""
     try:
@@ -55,14 +67,17 @@ def set_alarm(
             source = f"at {at}"
 
         timezone = scheduled_for.tzname() or scheduled_for.strftime("%z")
-        typer.echo(f"Alarm scheduled for {scheduled_for:%Y-%m-%d %H:%M:%S} {timezone} ({source}).")
-        if label is not None:
-            typer.echo(f"Label: {label}")
+        if not quiet:
+            typer.echo(
+                f"Alarm scheduled for {scheduled_for:%Y-%m-%d %H:%M:%S} {timezone} ({source})."
+            )
+            if label is not None:
+                typer.echo(f"Label: {label}")
         wait_until(scheduled_for)
-        notify_terminal(label)
+        notify_terminal(label, bell_count=0 if no_bell else 3)
     except InvalidScheduleError as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(1) from error
     except KeyboardInterrupt:
-        typer.echo("Alarm cancelled.")
+        typer.echo("Alarm cancelled.", err=True)
         raise typer.Exit(130) from None
