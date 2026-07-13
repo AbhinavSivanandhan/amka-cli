@@ -4,68 +4,68 @@
 
 Goal: provide a complete foreground alarm flow.
 
-### US-V0-01: Project foundation
+### [x] US-V0-01: Project foundation
 
 As a contributor, I want a reproducible Python workspace so that I can build and validate Amka consistently.
 
 Acceptance criteria:
 
-- Project installs in editable mode.
-- `amka --help` works.
-- `amka version` works.
-- Ruff, mypy, and pytest run successfully.
-- CI configuration exists.
-- Repository structure is ready for the first vertical slice.
+- [x] Project installs in editable mode.
+- [x] `amka --help` works.
+- [x] `amka version` works.
+- [x] Ruff, mypy, and pytest run successfully.
+- [x] CI configuration exists.
+- [x] Repository structure is ready for the first vertical slice.
 
-### US-V0-02: Relative alarm
+### [x] US-V0-02: Relative alarm
 
 As a terminal user, I want to set an alarm using a relative duration so that I receive an alert after a specified interval.
 
 Acceptance criteria:
 
-- Support `amka set --in 5s`.
-- Support `s`, `m`, and `h` units.
-- Support combined values such as `1h30m`.
-- Reject zero, negative, malformed, and unsupported durations.
-- Display the resolved alarm time.
-- Wait without busy-looping.
-- Exit cleanly on `Ctrl+C`.
+- [x] Support `amka set --in 5s`.
+- [x] Support `s`, `m`, and `h` units.
+- [x] Support combined values such as `1h30m`.
+- [x] Reject zero, negative, malformed, and unsupported durations.
+- [x] Display the resolved alarm time.
+- [x] Wait without busy-looping.
+- [x] Exit cleanly on `Ctrl+C`.
 
-### US-V0-03: Absolute local-time alarm
+### [x] US-V0-03: Absolute local-time alarm
 
 As a terminal user, I want to set an alarm using a local time so that it fires at the next occurrence of that time.
 
 Acceptance criteria:
 
-- Support `amka set --at 07:30`.
-- Resolve to the next strictly future local occurrence.
-- Use timezone-aware datetimes.
-- Display the resolved date, time, and timezone.
-- Reject malformed input.
+- [x] Support `amka set --at 07:30`.
+- [x] Resolve to the next strictly future local occurrence.
+- [x] Use timezone-aware datetimes.
+- [x] Display the resolved date, time, and timezone.
+- [x] Reject malformed input.
 
-### US-V0-04: Terminal notification
+### [x] US-V0-04: Terminal notification
 
 As a user, I want a visible and audible notification so that I notice when the alarm becomes due.
 
 Acceptance criteria:
 
-- Print a visible alarm message.
-- Include the optional label.
-- Emit a bounded terminal bell.
-- Do not ring indefinitely.
-- Notification logic is independently testable.
+- [x] Print a visible alarm message.
+- [x] Include the optional label.
+- [x] Emit a bounded terminal bell.
+- [x] Do not ring indefinitely.
+- [x] Notification logic is independently testable.
 
-### US-V0-05: V0 verification
+### [ ] US-V0-05: V0 verification
 
 As a maintainer, I want deterministic tests and a runnable demo so that V0 can be tagged confidently.
 
 Acceptance criteria:
 
-- Unit tests cover duration parsing and time resolution.
-- CLI tests cover help, version, valid input, and invalid input.
-- Tests do not rely on arbitrary long sleeps.
-- Quality checks pass.
-- End-to-end command works: `amka set --in 5s --label "Better demo"`
+- [ ] Unit tests cover duration parsing and time resolution.
+- [ ] CLI tests cover help, version, valid input, and invalid input.
+- [ ] Tests do not rely on arbitrary long sleeps.
+- [ ] Quality checks pass.
+- [ ] End-to-end command works: `amka set --in 5s --label "Better demo"`
 
 ## V1 — Persistent Multi-Alarm CLI
 
