@@ -119,3 +119,8 @@ amka set --in 10m --label "Cancelable alarm"
 V0 is intentionally foreground-only and does not yet include persistence, multiple managed alarms, a background service, recurrence, or remote notifications.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the roadmap.
+
+
+## Demo
+
+https://www.loom.com/share/af480788c90e456c88d5ba22f46bc3ed
